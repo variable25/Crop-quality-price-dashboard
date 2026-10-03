@@ -1,0 +1,46 @@
+file,excel_row,column,issue,expected_handling
+lab_results_2022-09-wk1.xlsx,3 title lines,-,Report title lines above the real header (header is on row 5),Detect the header row automatically
+lab_results_2022-09-wk1.xlsx,many,Aflatoxin (ppb),'ND' = not detected (below the instrument's limit),"Store NULL + below_detection = TRUE, never 0"
+lab_results_2022-09-wk1.xlsx,10,Moisture (%),"115 is impossible for a percentage (decimal missed, likely 11.5)",Reject to rejected_rows: moisture outside 0-100
+lab_results_2022-09-wk1.xlsx,14,(all),Blank row in the middle of the table,Drop silently
+lab_results_2022-09-wk1.xlsx,16,Aflatoxin (ppb),Negative aflatoxin value -3.2,Reject to rejected_rows: aflatoxin cannot be negative
+lab_results_2022-09-wk1.xlsx,20,(all),Exact duplicate of the row above,"Drop duplicate, load once"
+KQL_results_week2.xlsx,-,(headers),"Column names differ from week 1 (sample_id, FM %, ...)",Map to standard names via config
+KQL_results_week2.xlsx,-,commodity name,"Synonyms: Arhar=Tur, Peanut=Groundnut, Bengal Gram=Chana, Haldi=Turmeric",Map to one standard name via config
+KQL_results_week2.xlsx,-,date of test,"Dates are text in dd/mm/yyyy (08/09/2022 = 8 Sep, not 9 Aug)",Parse with dayfirst=True
+KQL_results_week2.xlsx,-,moisture,Numbers stored as text with a % sign ('10.4%'),Strip % and convert to number
+KQL_results_week2.xlsx,many,aflatoxin ppb,'BDL' = below detection limit (same meaning as 'ND'),Store NULL + below_detection = TRUE
+KQL_results_week2.xlsx,5,date of test,31 September does not exist,Reject to rejected_rows: invalid date
+KQL_results_week2.xlsx,8,commodity name,Commodity is empty,Reject to rejected_rows: required field missing
+KQL_results_week2.xlsx,18,sample_id,KQL-2209-103 appears twice with different values (retest),"Keep the latest test date, log that an older value was replaced"
+Lab Report Sep Wk3 FINAL.xlsx,1,-,Merged title cell across the full width,Detect the header row automatically
+Lab Report Sep Wk3 FINAL.xlsx,-,COMMODITY,"Case and spacing differ (' tur', 'TUR', 'Red Gram')","Strip, lowercase, then map via config"
+Lab Report Sep Wk3 FINAL.xlsx,-,TEST DATE,Dates as text '15-Sep-22',Parse to a real date
+Lab Report Sep Wk3 FINAL.xlsx,many,AFLATOXIN (PPB),'<LOD' = below limit of detection (same as ND/BDL),Store NULL + below_detection = TRUE
+Lab Report Sep Wk3 FINAL.xlsx,4,SAMPLE ID,Lowercase ID with a trailing space,Strip spaces and uppercase before loading
+Lab Report Sep Wk3 FINAL.xlsx,5,SAMPLE ID,Lowercase ID with a trailing space,Strip spaces and uppercase before loading
+Lab Report Sep Wk3 FINAL.xlsx,6,MOISTURE %,"Decimal comma '10,8'","Replace comma with dot, convert to number"
+Lab Report Sep Wk3 FINAL.xlsx,9,TEST DATE,"Year typed as 32 -> 2032, a date in the future",Reject to rejected_rows: test date in the future
+Lab Report Sep Wk3 FINAL.xlsx,12,FOREIGN MATTER %,12.5% is inside 0-100 but unrealistic (normal is under 3%),"Soft rule: flag for review, not a hard reject"
+Lab Report Sep Wk3 FINAL.xlsx,15,OIL CONTENT %,Text 'n/a' in a number column,Convert to NULL
+agmarknet_prices_2022-09-01_to_2022-09-15.xlsx,2 title lines,-,Title lines above the header,Detect the header row automatically
+agmarknet_prices_2022-09-01_to_2022-09-15.xlsx,-,Commodity,"Long Agmarknet names, e.g. 'Arhar (Tur/Red Gram)(Whole)'",Map to standard names via config
+agmarknet_prices_2022-09-01_to_2022-09-15.xlsx,-,Price Date,Dates as text '01 Sep 2022',Parse to a real date
+agmarknet_prices_2022-09-01_to_2022-09-15.xlsx,-,Price Date,No rows on Sundays (markets closed),"Normal gap, not an error"
+agmarknet_prices_2022-09-01_to_2022-09-15.xlsx,28,(all),Duplicate of the row above except 'Sl no.',Dedupe on market + commodity + date; Sl no. is not data
+agmarknet_prices_2022-09-01_to_2022-09-15.xlsx,41,Modal Price (Rs./Quintal),Extra zero: 71400 instead of 7140,Outlier vs rolling median -> rejected_rows for review
+agmarknet_prices_2022-09-01_to_2022-09-15.xlsx,58,Min/Max Price,Min and max swapped (min > max),Reject: min <= modal <= max rule fails
+agmarknet_prices_2022-09-01_to_2022-09-15.xlsx,69,Market Name,Old name 'Gulbarga' used for Kalaburagi,Map to 'Kalaburagi' via config
+agmarknet_prices_2022-09-01_to_2022-09-15.xlsx,75,Modal Price (Rs./Quintal),"Real price rally, about +5% per day","Must NOT be flagged: gradual move, within rolling-median limits"
+agmarknet_prices_2022-09-01_to_2022-09-15.xlsx,80,Modal Price (Rs./Quintal),Modal price missing,Reject: required field missing
+agmarknet_prices_2022-09-01_to_2022-09-15.xlsx,82,Modal Price (Rs./Quintal),"Real price rally, about +5% per day","Must NOT be flagged: gradual move, within rolling-median limits"
+agmarknet_prices_2022-09-01_to_2022-09-15.xlsx,89,Modal Price (Rs./Quintal),"Real price rally, about +5% per day","Must NOT be flagged: gradual move, within rolling-median limits"
+agmarknet_prices_2022-09-01_to_2022-09-15.xlsx,96,Modal Price (Rs./Quintal),"Real price rally, about +5% per day","Must NOT be flagged: gradual move, within rolling-median limits"
+trader_rates_sep_16-30.xlsx,-,(all prices),"Prices per kg, the other files use per quintal (1 quintal = 100 kg)",Multiply by 100 before loading
+trader_rates_sep_16-30.xlsx,-,Mandi,"Name variants: 'Kalburgi' = Kalaburagi, 'Hubli' = Hubballi",Map to standard market names via config
+trader_rates_sep_16-30.xlsx,-,Rate/kg (avg),Trader 'avg' is not exactly Agmarknet 'modal' price,"Load as modal, write this assumption in the docs"
+trader_rates_sep_16-30.xlsx,-,(no district/variety),"District, variety, grade columns missing",Fill from a market lookup table or leave NULL
+trader_rates_sep_16-30.xlsx,19,Rate/kg (avg),Quintal price 6090 typed into a per-kg column,"After x100 it is 100 times too high -> outlier, rejected_rows"
+trader_rates_sep_16-30.xlsx,40,Rate/kg (max),Text 'NA' in a number column,"Convert to NULL, then reject: max missing"
+agmarknet_prices_2022-09-01_to_2022-09-15 (1).xlsx,-,(file),Same file downloaded twice under a new name,"Same hash as the original -> skip, load nothing"
+prices_upload_broken.xlsx,-,(file),Has a .xlsx name but is not an Excel file,"Move to data/failed/, log the error, continue with the other files"
