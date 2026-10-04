@@ -1,0 +1,98 @@
+# mappings.yaml - the pipeline's dictionary.
+# When a lab, trader or website changes a column name or spelling,
+# edit THIS file, not the Python code. Matching ignores case and extra spaces.
+
+formats:
+  lab:
+    file_type: lab
+    columns:
+      sample_id:          ["Sample ID", "sample_id"]
+      commodity:          ["Commodity", "commodity name"]
+      batch_no:           ["Batch No", "Batch No.", "batch"]
+      test_date:          ["Test Date", "date of test"]
+      moisture_pct:       ["Moisture (%)", "moisture", "Moisture %"]
+      oil_pct:            ["Oil Content (%)", "oil %", "Oil Content %"]
+      foreign_matter_pct: ["Foreign Matter (%)", "FM %", "Foreign Matter %"]
+      aflatoxin_ppb:      ["Aflatoxin (ppb)", "aflatoxin ppb"]
+      remarks:            ["Remarks"]
+
+  agmarknet:
+    file_type: price
+    unit_multiplier: 1            # already Rs per quintal
+    columns:
+      district:    ["District Name"]
+      market:      ["Market Name"]
+      commodity:   ["Commodity"]
+      variety:     ["Variety"]
+      grade:       ["Grade"]
+      min_price:   ["Min Price (Rs./Quintal)"]
+      max_price:   ["Max Price (Rs./Quintal)"]
+      modal_price: ["Modal Price (Rs./Quintal)"]
+      price_date:  ["Price Date"]
+
+  trader:
+    file_type: price
+    unit_multiplier: 100          # Rs per kg -> Rs per quintal (1 quintal = 100 kg)
+    columns:
+      price_date:  ["Date"]
+      market:      ["Mandi"]
+      commodity:   ["Crop"]
+      min_price:   ["Rate/kg (min)"]
+      max_price:   ["Rate/kg (max)"]
+      modal_price: ["Rate/kg (avg)"]   # assumption: trader "avg" is loaded as modal
+
+commodity_synonyms:
+  "tur": Tur
+  "toor": Tur
+  "arhar": Tur
+  "red gram": Tur
+  "arhar (tur/red gram)(whole)": Tur
+  "groundnut": Groundnut
+  "peanut": Groundnut
+  "chana": Chana
+  "bengal gram": Chana
+  "bengal gram(gram)(whole)": Chana
+  "turmeric": Turmeric
+  "haldi": Turmeric
+
+market_synonyms:
+  "kalaburagi": Kalaburagi
+  "gulbarga": Kalaburagi
+  "kalburgi": Kalaburagi
+  "bidar": Bidar
+  "chitradurga": Chitradurga
+  "challakere": Challakere
+  "gadag": Gadag
+  "hubballi": Hubballi
+  "hubli": Hubballi
+  "chamarajanagar": Chamarajanagar
+
+market_districts:                 # fills the district when a file doesn't have one
+  Kalaburagi: Kalaburagi
+  Bidar: Bidar
+  Chitradurga: Chitradurga
+  Challakere: Chitradurga
+  Gadag: Gadag
+  Hubballi: Dharwad
+  Chamarajanagar: Chamarajanagar
+
+values:
+  below_detection: ["ND", "BDL", "<LOD"]           # too small to measure
+  empty: ["", "NA", "N/A", "-", "null", "none"]    # treated as an empty cell
+
+date_formats:                     # tried in order; the day always comes before the month
+  - "%d/%m/%Y"                    # 08/09/2022
+  - "%d-%m-%Y"                    # 08-09-2022
+  - "%d-%b-%y"                    # 15-Sep-22
+  - "%d-%b-%Y"                    # 15-Sep-2022
+  - "%d %b %Y"                    # 01 Sep 2022
+  - "%Y-%m-%d"                    # 2022-09-01
+
+rules:
+  lab:
+    review_above:                 # soft rule: possible but unusual -> needs_review
+      foreign_matter_pct: 3.0
+  prices:
+    outlier_window: 7             # compare with the last 7 accepted prices
+    outlier_ratio: 1.5            # reject if more than 1.5x above or below their median
+    outlier_min_history: 3        # need at least 3 earlier prices to judge
