@@ -1,6 +1,6 @@
 -- schema.sql
 -- Creates the 5 tables for the Crop Lab ETL pipeline
--- Safe to run more than onceL IF NOT EXISTS skips the tables that already exist
+-- Safe to run more than once: IF NOT EXISTS skips the tables that already exist
 -- Order is important: a table must exist before another table can point to it
 
 --1. Diary: one row per pipeline run
@@ -25,9 +25,9 @@ CREATE TABLE IF NOT EXISTS processed_files (
     run_id          INTEGER NOT NULL REFERENCES pipeline_runs (run_id),
     file_name       TEXT NOT NULL,
     file_hash       CHAR(64) NOT NULL,
-    file_type       TEXT CHECK (file_type IN ('lab','practice')),
+    file_type       TEXT CHECK (file_type IN ('lab','price')),
     status          TEXT NOT NULL
-                    CHECK (status IN ('loaded', 'skipped duplicate','failed')),
+                    CHECK (status IN ('loaded', 'skipped_duplicate','failed')),
     rows_loaded     INTEGER NOT NULL DEFAULT 0,
     rows_rejected   INTEGER NOT NULL DEFAULT 0,
     error_message   TEXT,
