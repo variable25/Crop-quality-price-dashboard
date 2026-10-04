@@ -1,0 +1,19 @@
+# Streamlit settings for this project. No secrets in here, so it is committed.
+
+[theme]
+base = "light"
+primaryColor = "#9C4A1A"              # rust: selected widgets and focus
+backgroundColor = "#F3EFE6"           # warm paper instead of pure white
+secondaryBackgroundColor = "#E8E2D4"  # sidebar and input fields
+textColor = "#22201C"                 # dark ink
+borderColor = "#CBC2AE"
+showWidgetBorder = true
+baseRadius = "none"                   # square corners everywhere
+font = "sans serif"
+headingFont = "serif"
+
+[client]
+toolbarMode = "minimal"
+
+[browser]
+gatherUsageStats = false              # don't send usage data to Streamlit
